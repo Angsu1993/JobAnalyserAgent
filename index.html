@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Fit Analyzer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f8fa;
+        --panel: #ffffff;
+        --text: #1f2933;
+        --muted: #6b7280;
+        --border: #d8dde6;
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --green-bg: #dcfce7;
+        --green-text: #166534;
+        --red-bg: #fee2e2;
+        --red-text: #991b1b;
+        --tip-bg: #fff7ed;
+        --tip-border: #fdba74;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(920px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 48px 0;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 0 0 28px;
+        color: var(--muted);
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 12px 28px rgba(31, 41, 51, 0.08);
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 650;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 240px;
+        resize: vertical;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        color: var(--text);
+        font: inherit;
+        line-height: 1.5;
+      }
+
+      textarea:focus {
+        border-color: var(--primary);
+        outline: 3px solid rgba(37, 99, 235, 0.18);
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--primary);
+        color: white;
+        padding: 0 18px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--primary-dark);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.65;
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .error {
+        color: #b91c1c;
+      }
+
+      .results {
+        display: none;
+        margin-top: 24px;
+        gap: 22px;
+      }
+
+      .results.visible {
+        display: grid;
+      }
+
+      .score-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .score {
+        font-size: 2.4rem;
+        font-weight: 800;
+      }
+
+      .progress {
+        width: 100%;
+        height: 12px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e5e7eb;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #22c55e, var(--primary));
+        transition: width 220ms ease;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      h2 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        border-radius: 999px;
+        padding: 7px 11px;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .chip.green {
+        background: var(--green-bg);
+        color: var(--green-text);
+      }
+
+      .chip.red {
+        background: var(--red-bg);
+        color: var(--red-text);
+      }
+
+      .chip.blue {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .warning {
+        display: none;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        background: #fef2f2;
+        color: #b91c1c;
+        padding: 14px 16px;
+        font-weight: 700;
+      }
+
+      .warning.visible {
+        display: block;
+      }
+
+      .tip {
+        border-left: 4px solid var(--tip-border);
+        border-radius: 8px;
+        background: var(--tip-bg);
+        padding: 16px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 700px) {
+        main {
+          width: min(100% - 24px, 920px);
+          padding: 28px 0;
+        }
+
+        .panel {
+          padding: 18px;
+        }
+
+        .grid,
+        .score-row {
+          grid-template-columns: 1fr;
+        }
+
+        .score-row {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Job Fit Analyzer</h1>
+      <p class="subtitle">Paste a role description and compare it with Angsumita's frontend profile.</p>
+
+      <section class="panel">
+        <label for="job-description">Job description</label>
+        <textarea
+          id="job-description"
+          placeholder="Paste the job description here..."
+        ></textarea>
+
+        <div class="actions">
+          <button id="analyze-button" type="button">Analyze</button>
+          <span id="status" class="status" role="status" aria-live="polite"></span>
+        </div>
+
+        <section id="results" class="results" aria-live="polite">
+          <div>
+            <div class="score-row">
+              <h2>Match score</h2>
+              <div id="score" class="score">0%</div>
+            </div>
+            <div class="progress" aria-label="Match score">
+              <div id="progress-bar" class="progress-bar"></div>
+            </div>
+          </div>
+
+          <div id="warning" class="warning">
+            This role might need significant upskilling.
+          </div>
+
+          <div class="grid">
+            <div>
+              <h2>Matched skills</h2>
+              <div id="matched-skills" class="chips"></div>
+            </div>
+            <div>
+              <h2>Missing skills</h2>
+              <div id="missing-skills" class="chips"></div>
+            </div>
+          </div>
+
+          <div>
+            <h2>Cover letter keywords</h2>
+            <div id="cover-letter-keywords" class="chips"></div>
+          </div>
+
+          <div>
+            <h2>Tip</h2>
+            <div id="tip" class="tip"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { analyzeJD } from "./agent.js";
+
+      const textarea = document.querySelector("#job-description");
+      const analyzeButton = document.querySelector("#analyze-button");
+      const status = document.querySelector("#status");
+      const results = document.querySelector("#results");
+      const score = document.querySelector("#score");
+      const progressBar = document.querySelector("#progress-bar");
+      const matchedSkills = document.querySelector("#matched-skills");
+      const missingSkills = document.querySelector("#missing-skills");
+      const coverLetterKeywords = document.querySelector("#cover-letter-keywords");
+      const warning = document.querySelector("#warning");
+      const tip = document.querySelector("#tip");
+
+      function renderChips(container, skills, color) {
+        container.replaceChildren(
+          ...skills.map((skill) => {
+            const chip = document.createElement("span");
+            chip.className = `chip ${color}`;
+            chip.textContent = skill;
+            return chip;
+          }),
+        );
+      }
+
+      analyzeButton.addEventListener("click", async () => {
+        const jobDescription = textarea.value.trim();
+
+        if (!jobDescription) {
+          status.textContent = "Please paste a job description first.";
+          status.classList.add("error");
+          return;
+        }
+
+        analyzeButton.disabled = true;
+        status.textContent = "Analyzing...";
+        status.classList.remove("error");
+        results.classList.remove("visible");
+
+        try {
+          const analysis = await analyzeJD(jobDescription);
+          const matchPercent = Math.max(
+            0,
+            Math.min(100, Number.parseInt(analysis.matchPercent, 10) || 0),
+          );
+
+          score.textContent = `${matchPercent}%`;
+          progressBar.style.width = `${matchPercent}%`;
+          renderChips(matchedSkills, analysis.matchedSkills ?? [], "green");
+          renderChips(missingSkills, analysis.missingSkills ?? [], "red");
+          renderChips(
+            coverLetterKeywords,
+            analysis.coverLetterKeywords ?? [],
+            "blue",
+          );
+          warning.classList.toggle("visible", matchPercent < 50);
+          tip.textContent = analysis.tip ?? "";
+
+          status.textContent = "";
+          results.classList.add("visible");
+        } catch (error) {
+          status.textContent = error.message;
+          status.classList.add("error");
+        } finally {
+          analyzeButton.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,21 @@
+export const MY_PROFILE = {
+  name: "Angsumita",
+  role: "Senior Frontend Developer, 9+ years experience",
+  skills: [
+    "Angular",
+    "Vue.js",
+    "Vue 3",
+    "TypeScript",
+    "JavaScript",
+    "React",
+    "Tailwind CSS",
+    "Jest",
+    "Vitest",
+    "WCAG",
+    "Shadcn/ui",
+    "Claude Code",
+    "Cursor",
+  ],
+  location: "Bremen, Germany",
+  languages: ["English (fluent)", "German (B2)"],
+};
